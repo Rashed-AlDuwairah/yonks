@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  REELS — iOS IPA Build (Unsigned)
+#
+#  Builds an unsigned IPA on macOS via GitHub Actions.
+#  Install the IPA on your device using Sideloadly.
+#
+#  Triggers:
+#   • Push to main
+#   • Manual dispatch from GitHub UI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: iOS Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build Unsigned IPA
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Flutter ─────────────────────────────────────────────────
+      - name: Setup Flutter 3.19.0
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.0"
+          channel: stable
+          cache: true
+
+      # ── 3. Get dependencies ──────────────────────────────────────────────
+      - name: Flutter pub get
+        working-directory: reels
+        run: flutter pub get
+
+      # ── 4. Install CocoaPods ─────────────────────────────────────────────
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      # ── 5. Pod install ───────────────────────────────────────────────────
+      - name: Pod install
+        working-directory: reels/ios
+        run: pod install --repo-update
+
+      # ── 6. Build iOS (unsigned) ──────────────────────────────────────────
+      - name: Build iOS release (no codesign)
+        working-directory: reels
+        run: flutter build ios --release --no-codesign
+
+      # ── 7. Package IPA ──────────────────────────────────────────────────
+      - name: Package unsigned IPA
+        working-directory: reels
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r Reels.ipa Payload/
+
+      # ── 8. Upload artifact ──────────────────────────────────────────────
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reels-IPA
+          path: reels/Reels.ipa
+          retention-days: 7
+          if-no-files-found: error

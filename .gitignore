@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  YONK MONOREPO — Root .gitignore
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── OS junk ──────────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# ─── Secrets — NEVER commit ──────────────────────────────────────────────────
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+*.key
+*.pem
+*.cer
+*.env
+.env.*
+!.env.example
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  FLUTTER (reels/)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Dart/Flutter
+reels/.dart_tool/
+reels/.flutter-plugins
+reels/.flutter-plugins-dependencies
+reels/.packages
+reels/build/
+reels/.pub-cache/
+reels/.pub/
+reels/pubspec.lock
+
+# iOS
+reels/ios/Pods/
+reels/ios/.symlinks/
+reels/ios/Flutter/Flutter.framework
+reels/ios/Flutter/Flutter.podspec
+reels/ios/Flutter/Generated.xcconfig
+reels/ios/Flutter/ephemeral/
+reels/ios/Flutter/flutter_export_environment.sh
+reels/ios/Runner.xcworkspace/xcuserdata/
+reels/ios/Runner.xcworkspace/xcshareddata/
+reels/ios/Runner.xcodeproj/xcuserdata/
+reels/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+**/DerivedData/
+**/xcuserdata/
+
+# Android (not needed — iOS only)
+reels/android/
+
+# Build outputs
+Payload/
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  PYTHON BACKEND (reels_backend/)
+# ═══════════════════════════════════════════════════════════════════════════════
+reels_backend/__pycache__/
+reels_backend/*.pyc
+reels_backend/.venv/
+reels_backend/venv/
+reels_backend/downloads/

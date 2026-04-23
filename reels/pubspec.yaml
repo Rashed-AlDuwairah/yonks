@@ -1,0 +1,61 @@
+name: reels
+description: "Reels — Premium iOS video downloader with world-class native design."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # iOS-native icons
+  cupertino_icons: ^1.0.8
+
+  # Networking
+  dio: ^5.4.0
+  dio_smart_retry: ^6.0.0
+
+  # Downloading
+  background_downloader: ^8.5.0
+
+  # Media & Photos
+  photo_manager: ^3.3.0
+  video_player: ^2.8.3
+  chewie: ^1.7.4
+
+  # Local database
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0
+
+  # Dependency injection
+  get_it: ^7.6.7
+
+  # Routing
+  go_router: ^13.2.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.0
+
+  # Sharing
+  share_plus: ^9.0.0
+  receive_sharing_intent: ^1.8.0
+
+  # File system
+  path_provider: ^2.1.2
+
+  # Image caching & UI polish
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  haptic_feedback: ^0.5.1+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.8
+  isar_generator: ^3.1.0
+
+flutter:
+  uses-material-design: true
