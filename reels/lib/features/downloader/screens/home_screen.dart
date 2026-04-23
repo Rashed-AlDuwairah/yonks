@@ -12,6 +12,7 @@ import 'package:reels/shared/widgets/ios_text_field.dart';
 import 'package:reels/features/downloader/cubit/downloader_cubit.dart';
 import 'package:reels/features/downloader/cubit/downloader_state.dart';
 import 'package:reels/features/downloader/services/api_service.dart';
+import 'package:reels/features/library/services/library_store.dart';
 import 'quality_picker_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
