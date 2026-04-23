@@ -56,6 +56,7 @@ app.add_middleware(
     allow_origins=["*"],  # Open for development — restrict in production
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Length", "Content-Disposition"],
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════

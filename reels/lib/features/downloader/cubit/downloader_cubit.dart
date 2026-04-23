@@ -1,14 +1,19 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:photo_manager/photo_manager.dart';
 
 import 'package:reels/core/utils/cubit.dart';
 import 'package:reels/features/downloader/models/video_info.dart';
 import 'package:reels/features/downloader/services/api_service.dart';
+import 'package:reels/features/library/models/library_entry.dart';
+import 'package:reels/features/library/services/library_store.dart';
 import 'downloader_state.dart';
+
+// Conditional imports for non-web platforms
+import 'package:reels/features/downloader/cubit/_save_stub.dart'
+    if (dart.library.io) 'package:reels/features/downloader/cubit/_save_native.dart'
+    as save_impl;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  DOWNLOADER CUBIT
@@ -18,14 +23,17 @@ import 'downloader_state.dart';
 
 class DownloaderCubit extends Cubit<DownloaderState> {
   final ApiService _api;
+  final LibraryStore _libraryStore;
   final FlutterLocalNotificationsPlugin? _notifications;
 
   CancelToken? _cancelToken;
 
   DownloaderCubit({
     required ApiService apiService,
+    required LibraryStore libraryStore,
     FlutterLocalNotificationsPlugin? notifications,
   })  : _api = apiService,
+        _libraryStore = libraryStore,
         _notifications = notifications,
         super(const DownloaderInitial());
 
@@ -59,7 +67,22 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     emit(DownloaderDownloading(info: info, formatId: formatId));
 
     try {
-      // Build save path
+      if (kIsWeb) {
+        // On web: simulate download progress for preview purposes
+        for (int i = 1; i <= 10; i++) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          emit(DownloaderDownloading(
+            info: info,
+            formatId: formatId,
+            progress: i / 10,
+            speed: '${(i * 1.2).toStringAsFixed(1)} MB/s',
+          ));
+        }
+        emit(DownloaderCompleted(info: info));
+        return;
+      }
+
+      // Native platforms: real download
       final dir = await getTemporaryDirectory();
       final format = info.formats.firstWhere(
         (f) => f.formatId == formatId,
@@ -88,13 +111,19 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         },
       );
 
-      // Save to Camera Roll
-      await _saveToPhotos(savePath, info.title);
+      // Save to Camera Roll (iOS/Android only)
+      await save_impl.saveToPhotos(savePath, info.title);
 
       // Clean up temp file
-      try {
-        File(savePath).deleteSync();
-      } catch (_) {}
+      save_impl.deleteFile(savePath);
+
+      // Save to local JSON library
+      final entry = LibraryEntry.fromVideoInfo(
+        info: info,
+        formatId: formatId,
+        localPath: savePath, // We keep the path even if deleted, just for metadata
+      );
+      await _libraryStore.addEntry(entry);
 
       // Local notification
       await _showCompletionNotification(info.title);
@@ -129,22 +158,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     emit(const DownloaderInitial());
   }
 
-  // ─── Save to Camera Roll ──────────────────────────────────────────────
-
-  Future<void> _saveToPhotos(String filePath, String title) async {
-    final permission = await PhotoManager.requestPermissionExtend();
-    if (!permission.isAuth) return;
-
-    final file = File(filePath);
-    if (!file.existsSync()) return;
-
-    await PhotoManager.editor.saveVideo(file, title: title);
-  }
-
   // ─── Notification ──────────────────────────────────────────────────────
 
   Future<void> _showCompletionNotification(String title) async {
-    if (_notifications == null) return;
+    if (_notifications == null || kIsWeb) return;
 
     await _notifications!.show(
       DateTime.now().millisecondsSinceEpoch % 100000,

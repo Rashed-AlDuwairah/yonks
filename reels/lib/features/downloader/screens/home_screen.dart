@@ -56,8 +56,9 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
 
     _cubit = DownloaderCubit(
-      apiService: GetIt.instance<ApiService>(),
-      notifications: GetIt.instance(),
+      apiService: GetIt.I<ApiService>(),
+      libraryStore: GetIt.I<LibraryStore>(),
+      notifications: GetIt.I<FlutterLocalNotificationsPlugin>(),
     );
 
     _urlController = TextEditingController()..addListener(_onUrlChanged);
