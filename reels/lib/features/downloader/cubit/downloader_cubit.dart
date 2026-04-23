@@ -146,7 +146,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   Future<void> _showCompletionNotification(String title) async {
     if (_notifications == null) return;
 
-    await _notifications.show(
+    await _notifications!.show(
       DateTime.now().millisecondsSinceEpoch % 100000,
       '✅ Download Complete',
       '$title saved to Camera Roll',
