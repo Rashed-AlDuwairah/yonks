@@ -8,15 +8,9 @@ import 'package:reels/shared/widgets/pressable.dart';
 // ════════════════════════════════════════════════════════════════════════════════
 //  iOS BUTTON — Three Variants
 //
-//  • Primary   — Filled blue, 50 pt height, full width
-//  • Secondary — Glass / blur backdrop, semi-transparent
+//  • Primary   — Filled blue, 54 pt height, glowing shadow
+//  • Secondary — Heavy Glass / blur backdrop, subtle inner border
 //  • Destructive — Filled red
-//
-//  All variants include:
-//   - Medium-impact haptic on tap
-//   - Scale-down to 0.97 on press
-//   - 300 ms ease-in-out transitions
-//   - Loading state with CupertinoActivityIndicator
 // ════════════════════════════════════════════════════════════════════════════════
 
 enum IosButtonVariant { primary, secondary, destructive }
@@ -96,7 +90,7 @@ class _PrimaryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: 54, // Slightly taller for premium feel
       width: fullWidth ? double.infinity : null,
       padding: fullWidth
           ? null
@@ -104,13 +98,7 @@ class _PrimaryBody extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: AppRadius.mdAll,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(51), // 20 %
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: AppShadows.glowPrimary, // New glowing shadow
       ),
       child: Center(
         child: _ButtonContent(
@@ -144,18 +132,18 @@ class _SecondaryBody extends StatelessWidget {
     return ClipRRect(
       borderRadius: AppRadius.mdAll,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24), // Much stronger blur
         child: Container(
-          height: 50,
+          height: 54,
           width: fullWidth ? double.infinity : null,
           padding: fullWidth
               ? null
               : const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           decoration: BoxDecoration(
-            color: const Color(0x33FFFFFF), // 20 % white glass tint
+            color: const Color(0x1AFFFFFF), // 10% white for deep glass
             borderRadius: AppRadius.mdAll,
             border: Border.all(
-              color: const Color(0x1AFFFFFF), // 10 % white border
+              color: AppColors.glassBorder,
               width: 0.5,
             ),
           ),
@@ -191,7 +179,7 @@ class _DestructiveBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: 54,
       width: fullWidth ? double.infinity : null,
       padding: fullWidth
           ? null
@@ -202,8 +190,8 @@ class _DestructiveBody extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColors.error.withAlpha(51),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -242,7 +230,10 @@ class _ButtonContent extends StatelessWidget {
 
     final textWidget = Text(
       label,
-      style: AppTypography.headline.copyWith(color: textColor),
+      style: AppTypography.headline.copyWith(
+        color: textColor,
+        fontWeight: FontWeight.w700, // Bolder text for buttons
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -252,7 +243,7 @@ class _ButtonContent extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: textColor, size: 18),
+        Icon(icon, color: textColor, size: 20),
         const SizedBox(width: AppSpacing.sm),
         Flexible(child: textWidget),
       ],

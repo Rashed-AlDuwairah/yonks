@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -16,26 +17,6 @@ import 'package:reels/features/downloader/services/api_service.dart';
 import 'package:reels/features/library/services/library_store.dart';
 import 'quality_picker_screen.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  HOME SCREEN
-//
-//  ┌───────────────────────────────┐
-//  │  Reels           (large title)│
-//  │  Paste any video link         │
-//  │                               │
-//  │  ┌─ 🔗 Paste URL…  📋 ──────┐│
-//  │  └────────────────────────────┘│
-//  │  ● YouTube detected           │
-//  │                               │
-//  │  ┌──── Fetch Video ───────┐   │
-//  │  └────────────────────────┘   │
-//  │                               │
-//  │  ── state content ──          │
-//  │  (empty / shimmer / progress  │
-//  │   / completed / error)        │
-//  └───────────────────────────────┘
-// ═══════════════════════════════════════════════════════════════════════════════
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -51,8 +32,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   String _detectedPlatform = 'other';
 
-  // ─── Lifecycle ─────────────────────────────────────────────────────────
-
   @override
   void initState() {
     super.initState();
@@ -67,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
 
     _autoPasteFromClipboard();
@@ -81,8 +60,6 @@ class _HomeScreenState extends State<HomeScreen>
     _cubit.dispose();
     super.dispose();
   }
-
-  // ─── URL helpers ───────────────────────────────────────────────────────
 
   void _onUrlChanged() {
     final platform = _detectPlatform(_urlController.text.trim());
@@ -128,8 +105,6 @@ class _HomeScreenState extends State<HomeScreen>
     return 'other';
   }
 
-  // ─── Actions ───────────────────────────────────────────────────────────
-
   Future<void> _onFetchVideo() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;
@@ -159,66 +134,53 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      backgroundColor: AppColors.background,
       child: CubitBuilder<DownloaderCubit, DownloaderState>(
         cubit: _cubit,
         builder: (context, state) {
           return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
-              // Nav bar
               const CupertinoSliverNavigationBar(
                 largeTitle: Text('Reels'),
+                backgroundColor: Color(0x99000000),
                 border: null,
               ),
-
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.xs),
-
-                      // Subtitle
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         'Paste any video link',
                         style: AppTypography.subheadline.copyWith(
                           color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
-
-                      // URL field
                       IosTextField(
                         controller: _urlController,
                         onSubmitted: (_) => _onFetchVideo(),
                       ),
                       const SizedBox(height: AppSpacing.md),
-
-                      // Platform badge
                       _PlatformBadge(platform: _detectedPlatform),
                       const SizedBox(height: AppSpacing.lg),
-
-                      // Fetch button
                       IosButton(
                         label: 'Fetch Video',
-                        icon: CupertinoIcons.arrow_down_doc,
+                        icon: CupertinoIcons.arrow_down_doc_fill,
                         isLoading: state is DownloaderFetchingInfo,
                         enabled: state is! DownloaderFetchingInfo &&
                             state is! DownloaderDownloading,
                         onTap: _onFetchVideo,
                       ),
                       const SizedBox(height: AppSpacing.xxl),
-
-                      // State-specific content
                       _buildStateContent(state),
-
                       const SizedBox(height: AppSpacing.xxl),
                     ],
                   ),
@@ -234,6 +196,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildStateContent(DownloaderState state) {
     return AnimatedSwitcher(
       duration: AppDurations.normal,
+      switchInCurve: AppCurves.spring,
+      switchOutCurve: AppCurves.standard,
       child: switch (state) {
         DownloaderInitial() =>
           _EmptyState(key: const ValueKey('empty'), pulseCtrl: _pulseCtrl),
@@ -268,10 +232,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  PLATFORM BADGE — shown below the URL field when a platform is detected
-// ═══════════════════════════════════════════════════════════════════════════════
-
 class _PlatformBadge extends StatelessWidget {
   const _PlatformBadge({required this.platform});
 
@@ -291,12 +251,13 @@ class _PlatformBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: AppDurations.normal,
+      switchInCurve: AppCurves.spring,
       transitionBuilder: (child, animation) {
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0, 0.15),
+              begin: const Offset(0, 0.2),
               end: Offset.zero,
             ).animate(animation),
             child: child,
@@ -311,38 +272,40 @@ class _PlatformBadge extends StatelessWidget {
 
   Widget _buildBadge((String label, Color color, IconData icon) data) {
     final (label, color, icon) = data;
-    return Container(
+    return ClipRRect(
       key: ValueKey(platform),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: color.withAlpha(26), // 10%
-        borderRadius: AppRadius.smAll,
-        border: Border.all(color: color.withAlpha(64), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            '$label detected',
-            style: AppTypography.subheadline.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
+      borderRadius: AppRadius.smAll,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
-        ],
+          decoration: BoxDecoration(
+            color: color.withAlpha(26), // 10%
+            borderRadius: AppRadius.smAll,
+            border: Border.all(color: color.withAlpha(51), width: 0.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '$label detected',
+                style: AppTypography.subheadline.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  EMPTY STATE — animated pulsing icon + instruction + platform icons
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({super.key, required this.pulseCtrl});
@@ -354,55 +317,69 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          const SizedBox(height: AppSpacing.xl),
-
-          // Animated icon
+          const SizedBox(height: AppSpacing.xxl),
           AnimatedBuilder(
             animation: pulseCtrl,
             builder: (context, child) {
-              return Opacity(
-                opacity: 0.35 + 0.45 * pulseCtrl.value,
-                child: Transform.scale(
-                  scale: 0.92 + 0.08 * pulseCtrl.value,
-                  child: child,
+              return Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withAlpha((40 * pulseCtrl.value).toInt()),
+                      blurRadius: 40 + (20 * pulseCtrl.value),
+                      spreadRadius: 10 + (10 * pulseCtrl.value),
+                    ),
+                  ],
                 ),
+                child: child,
               );
             },
-            child: const Icon(
-              CupertinoIcons.arrow_down_circle,
-              size: 64,
-              color: AppColors.primary,
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    Color(0xFF0055FF), // Deeper blue for gradient
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: const Icon(
+                CupertinoIcons.arrow_down,
+                size: 48,
+                color: CupertinoColors.white,
+              ),
             ),
           ),
-
-          const SizedBox(height: AppSpacing.lg),
-
+          const SizedBox(height: AppSpacing.xl),
           Text(
             'Ready to Download',
-            style: AppTypography.title3.copyWith(
-              color: AppColors.textSecondary,
+            style: AppTypography.title2.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Paste a link from YouTube, TikTok,\nInstagram, Twitter, or any platform',
-            style: AppTypography.subheadline.copyWith(
+            style: AppTypography.body.copyWith(
               color: AppColors.textTertiary,
+              height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
-
           const SizedBox(height: AppSpacing.xxl),
-
-          // Supported platforms row
           const _SupportedPlatformsRow(),
         ],
       ),
     );
   }
 }
-
-// ─── Supported platforms strip ───────────────────────────────────────────────
 
 class _SupportedPlatformsRow extends StatelessWidget {
   const _SupportedPlatformsRow();
@@ -412,7 +389,6 @@ class _SupportedPlatformsRow extends StatelessWidget {
     ('𝕏', Color(0xFF1DA1F2)), // Twitter
     ('♪', Color(0xFF25F4EE)), // TikTok
     ('◎', Color(0xFFE1306C)), // Instagram
-    ('●', Color(0xFFFF5700)), // Reddit
   ];
 
   @override
@@ -421,35 +397,41 @@ class _SupportedPlatformsRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (final (label, color) in _platforms) ...[
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                  height: 1,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: color.withAlpha(51),
+                    width: 0.5,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                      height: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
         ],
       ],
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  LOADING STATE — shimmer skeleton
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class _LoadingState extends StatelessWidget {
   const _LoadingState({super.key});
@@ -457,24 +439,21 @@ class _LoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface2,
-      highlightColor: AppColors.surface3,
+      baseColor: AppColors.surface,
+      highlightColor: AppColors.surface2,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thumbnail skeleton
           Container(
-            height: 200,
+            height: 240,
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: AppRadius.mdAll,
+              borderRadius: AppRadius.lgAll,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Title skeleton
+          const SizedBox(height: AppSpacing.lg),
           Container(
-            height: 18,
+            height: 20,
             width: double.infinity,
             decoration: BoxDecoration(
               color: AppColors.surface,
@@ -483,35 +462,18 @@ class _LoadingState extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Container(
-            height: 18,
-            width: 220,
+            height: 20,
+            width: 200,
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Format card skeletons
-          for (int i = 0; i < 3; i++) ...[
-            Container(
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: AppRadius.mdAll,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
         ],
       ),
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  DOWNLOADING STATE — uses DownloadProgressCard from design system
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class _DownloadingState extends StatelessWidget {
   const _DownloadingState({
@@ -522,7 +484,7 @@ class _DownloadingState extends StatelessWidget {
     required this.onCancel,
   });
 
-  final dynamic info; // VideoInfo
+  final dynamic info;
   final double progress;
   final String speed;
   final VoidCallback onCancel;
@@ -545,10 +507,6 @@ class _DownloadingState extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  COMPLETED STATE — success checkmark + "Download Another"
-// ═══════════════════════════════════════════════════════════════════════════════
-
 class _CompletedState extends StatelessWidget {
   const _CompletedState({
     super.key,
@@ -564,34 +522,52 @@ class _CompletedState extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          const SizedBox(height: AppSpacing.xl),
-          const Icon(
-            CupertinoIcons.checkmark_circle_fill,
-            size: 64,
-            color: AppColors.success,
+          const SizedBox(height: AppSpacing.xxl),
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.success.withAlpha(26),
+              border: Border.all(
+                color: AppColors.success.withAlpha(76),
+                width: 2,
+              ),
+            ),
+            child: const Center(
+              child: Icon(
+                CupertinoIcons.checkmark_alt,
+                size: 56,
+                color: AppColors.success,
+              ),
+            ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.xl),
           Text(
             'Download Complete!',
-            style: AppTypography.title3.copyWith(
+            style: AppTypography.title2.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${info.title}\nSaved to Camera Roll',
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.textSecondary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              '${info.title}\nSaved to Camera Roll',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xxl),
           IosButton(
             label: 'Download Another',
-            icon: CupertinoIcons.arrow_down_circle,
+            icon: CupertinoIcons.arrow_2_circlepath,
             variant: IosButtonVariant.secondary,
             onTap: onReset,
           ),
@@ -600,10 +576,6 @@ class _CompletedState extends StatelessWidget {
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  ERROR STATE — icon per error code + message + retry
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class _ErrorState extends StatelessWidget {
   const _ErrorState({
@@ -618,12 +590,12 @@ class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
 
   IconData get _icon => switch (code) {
-        'INVALID_URL' => CupertinoIcons.exclamationmark_triangle_fill,
-        'UNSUPPORTED_PLATFORM' => CupertinoIcons.xmark_circle_fill,
-        'PRIVATE_VIDEO' => CupertinoIcons.lock_fill,
+        'INVALID_URL' => CupertinoIcons.exclamationmark_triangle,
+        'UNSUPPORTED_PLATFORM' => CupertinoIcons.xmark_circle,
+        'PRIVATE_VIDEO' => CupertinoIcons.lock,
         'GEO_RESTRICTED' => CupertinoIcons.globe,
         'SERVER_ERROR' => CupertinoIcons.wifi_slash,
-        _ => CupertinoIcons.exclamationmark_circle_fill,
+        _ => CupertinoIcons.exclamationmark_circle,
       };
 
   @override
@@ -631,15 +603,43 @@ class _ErrorState extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          const SizedBox(height: AppSpacing.xl),
-          Icon(_icon, size: 52, color: AppColors.error),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            message,
-            style: AppTypography.body.copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
+          const SizedBox(height: AppSpacing.xxl),
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.error.withAlpha(26),
+              border: Border.all(
+                color: AppColors.error.withAlpha(76),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Icon(_icon, size: 48, color: AppColors.error),
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
+          Text(
+            'Download Failed',
+            style: AppTypography.title2.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              message,
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
           IosButton(
             label: 'Try Again',
             icon: CupertinoIcons.refresh,

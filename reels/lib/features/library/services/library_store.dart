@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:reels/features/library/models/library_entry.dart';
@@ -12,6 +13,8 @@ class LibraryStore {
   List<LibraryEntry> _entries = [];
 
   Future<void> init() async {
+    if (kIsWeb) return; // File operations not supported on web
+    
     final directory = await getApplicationDocumentsDirectory();
     _file = File('${directory.path}/$_fileName');
 
@@ -31,16 +34,20 @@ class LibraryStore {
 
   Future<void> addEntry(LibraryEntry entry) async {
     _entries.insert(0, entry); // Newest first
-    await _save();
+    if (!kIsWeb) {
+      await _save();
+    }
   }
 
   Future<void> removeEntry(String id) async {
     _entries.removeWhere((e) => e.id == id);
-    await _save();
+    if (!kIsWeb) {
+      await _save();
+    }
   }
 
   Future<void> _save() async {
-    if (_file == null) return;
+    if (_file == null || kIsWeb) return;
     final jsonList = _entries.map((e) => e.toJson()).toList();
     await _file!.writeAsString(jsonEncode(jsonList));
   }

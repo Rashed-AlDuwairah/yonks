@@ -15,13 +15,25 @@ class LibraryScreen extends StatefulWidget {
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends State<LibraryScreen> {
+class _LibraryScreenState extends State<LibraryScreen>
+    with SingleTickerProviderStateMixin {
   late final LibraryStore _store;
+  late final AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
     _store = GetIt.I<LibraryStore>();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   VideoPlatform _parsePlatform(String p) {
@@ -38,55 +50,33 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final entries = _store.entries;
 
     return CupertinoPageScaffold(
+      backgroundColor: AppColors.background,
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          const CupertinoSliverNavigationBar(
-            largeTitle: Text('Library'),
+          CupertinoSliverNavigationBar(
+            largeTitle: const Text('Library'),
+            backgroundColor: AppColors.background.withAlpha(200), // Glass header
             border: null,
           ),
           if (entries.isEmpty)
             SliverFillRemaining(
               hasScrollBody: false,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      CupertinoIcons.play_rectangle,
-                      size: 56,
-                      color: AppColors.textTertiary,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      'Your Library',
-                      style: AppTypography.title3.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                      child: Text(
-                        'Downloaded videos will appear here.\nStart by downloading your first video!',
-                        style: AppTypography.subheadline.copyWith(
-                          color: AppColors.textTertiary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildEmptyState(),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.md,
+              ),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                  crossAxisCount: 2, // Larger, more cinematic 2-column layout
                   childAspectRatio: 9 / 16,
-                  crossAxisSpacing: AppSpacing.sm,
-                  mainAxisSpacing: AppSpacing.sm,
+                  crossAxisSpacing: AppSpacing.md,
+                  mainAxisSpacing: AppSpacing.md,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -95,8 +85,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       thumbnail: CachedNetworkImage(
                         imageUrl: entry.thumbnail,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const Center(
-                          child: Icon(CupertinoIcons.video_camera, color: AppColors.textTertiary),
+                        errorWidget: (_, __, ___) => Container(
+                          color: AppColors.surface,
+                          child: const Center(
+                            child: Icon(CupertinoIcons.video_camera,
+                                color: AppColors.textTertiary),
+                          ),
                         ),
                       ),
                       duration: Duration(seconds: entry.duration),
@@ -114,6 +108,69 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Animated glowing icon
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              final scale = 1.0 + (_pulseController.value * 0.05);
+              final opacity = 0.5 + (_pulseController.value * 0.5);
+              return Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(opacity * 0.3),
+                        blurRadius: 40,
+                        spreadRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      CupertinoIcons.rectangle_on_rectangle_angled,
+                      size: 64,
+                      color: AppColors.primary.withOpacity(opacity),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Text(
+            'Your Library',
+            style: AppTypography.title2.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+            child: Text(
+              'Downloaded videos will appear here.\nStart by downloading your first video!',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxl * 2), // Lift up slightly
         ],
       ),
     );

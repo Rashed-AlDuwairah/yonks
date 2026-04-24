@@ -23,7 +23,7 @@ import 'package:reels/shared/widgets/quality_card.dart';
 //  │  ┌ 1080p  MP4  24.3 MB  ✓ ┐       │
 //  │  ┌  720p  MP4  12.1 MB    ┐       │
 //  │                                    │
-//  │  ┌──── Download 1080p ─────────┐  │  ← sticky
+//  │  ┌──── Download 1080p ─────────┐  │  ← sticky floating button
 //  └────────────────────────────────────┘
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -51,96 +51,127 @@ class _QualityPickerScreenState extends State<QualityPickerScreen> {
     final bottom = MediaQuery.of(context).padding.bottom;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      height: screenHeight * 0.82,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // ── Drag handle ────────────────────────────────────
-          _buildDragHandle(),
-
-          // ── Scrollable content ─────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                0,
-                AppSpacing.lg,
-                AppSpacing.lg,
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+        child: Container(
+          height: screenHeight * 0.85, // Slightly taller
+          decoration: BoxDecoration(
+            color: AppColors.background.withAlpha(200), // Deep glass background
+            border: Border(
+              top: BorderSide(
+                color: const Color(0x33FFFFFF), // Subtle top rim light
+                width: 0.5,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Column(
                 children: [
-                  // Thumbnail
-                  _buildThumbnail(),
-                  const SizedBox(height: AppSpacing.lg),
+                  // ── Drag handle ────────────────────────────────────
+                  _buildDragHandle(),
 
-                  // Video meta
-                  _buildVideoMeta(),
-                  const SizedBox(height: AppSpacing.xl),
+                  // ── Scrollable content ─────────────────────────────
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.xxl * 3, // Extra padding for floating button
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Thumbnail
+                          _buildThumbnail(),
+                          const SizedBox(height: AppSpacing.xl),
 
-                  // Section header
-                  Text(
-                    'Select Quality',
-                    style: AppTypography.headline.copyWith(
-                      color: AppColors.textPrimary,
+                          // Video meta
+                          _buildVideoMeta(),
+                          const SizedBox(height: AppSpacing.xxl),
+
+                          // Section header
+                          Text(
+                            'Select Quality',
+                            style: AppTypography.title3.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          // Quality cards
+                          ...List.generate(widget.info.formats.length, (i) {
+                            final fmt = widget.info.formats[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: AppSpacing.md), // slightly more spacing
+                              child: QualityCard(
+                                resolution: fmt.resolution,
+                                format: fmt.ext.toUpperCase(),
+                                fileSize: fmt.formattedSize,
+                                isSelected: i == _selectedIndex,
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _selectedIndex = i);
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Quality cards
-                  ...List.generate(widget.info.formats.length, (i) {
-                    final fmt = widget.info.formats[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: QualityCard(
-                        resolution: fmt.resolution,
-                        format: fmt.ext.toUpperCase(),
-                        fileSize: fmt.formattedSize,
-                        isSelected: i == _selectedIndex,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selectedIndex = i);
-                        },
-                      ),
-                    );
-                  }),
                 ],
               ),
-            ),
-          ),
 
-          // ── Sticky download button ─────────────────────────
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.lg,
-              AppSpacing.md + bottom,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border(
-                top: BorderSide(color: AppColors.separator, width: 0.5),
+              // ── Sticky floating download button ─────────────────────────
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg + bottom,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.background.withAlpha(0),
+                            AppColors.background.withAlpha(200),
+                            AppColors.background,
+                          ],
+                        ),
+                      ),
+                      child: IosButton(
+                        label: 'Download ${widget.info.formats[_selectedIndex].resolution}',
+                        icon: CupertinoIcons.arrow_down_to_line_alt, // More elegant icon
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.of(context).pop();
+                          widget.onDownload(
+                            widget.info.formats[_selectedIndex].formatId,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: IosButton(
-              label:
-                  'Download ${widget.info.formats[_selectedIndex].resolution}',
-              icon: CupertinoIcons.arrow_down_to_line,
-              onTap: () {
-                HapticFeedback.mediumImpact();
-                Navigator.of(context).pop();
-                widget.onDownload(
-                  widget.info.formats[_selectedIndex].formatId,
-                );
-              },
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -150,11 +181,11 @@ class _QualityPickerScreenState extends State<QualityPickerScreen> {
   Widget _buildDragHandle() {
     return Center(
       child: Container(
-        width: 36,
+        width: 40, // Slightly wider
         height: 5,
-        margin: const EdgeInsets.only(top: 10, bottom: 14),
+        margin: const EdgeInsets.only(top: 12, bottom: 20),
         decoration: BoxDecoration(
-          color: AppColors.separator,
+          color: const Color(0x66FFFFFF), // More translucent white
           borderRadius: BorderRadius.circular(2.5),
         ),
       ),
@@ -164,33 +195,45 @@ class _QualityPickerScreenState extends State<QualityPickerScreen> {
   // ─── Thumbnail ────────────────────────────────────────────────────────
 
   Widget _buildThumbnail() {
-    return ClipRRect(
-      borderRadius: AppRadius.mdAll,
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: widget.info.thumbnail.isNotEmpty
-            ? CachedNetworkImage(
-                imageUrl: widget.info.thumbnail,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: AppColors.surface2,
-                  child: const Center(child: CupertinoActivityIndicator()),
-                ),
-                errorWidget: (context, url, error) => _thumbnailFallback(),
-              )
-            : _thumbnailFallback(),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.lgAll, // Larger radius
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x33000000), // Subtle shadow
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.lgAll,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: widget.info.thumbnail.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: widget.info.thumbnail,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: AppColors.surface,
+                    child: const Center(child: CupertinoActivityIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => _thumbnailFallback(),
+                )
+              : _thumbnailFallback(),
+        ),
       ),
     );
   }
 
   Widget _thumbnailFallback() {
     return Container(
-      color: AppColors.surface2,
+      color: AppColors.surface,
       child: const Center(
         child: Icon(
           CupertinoIcons.play_fill,
           color: AppColors.textTertiary,
-          size: 36,
+          size: 40,
         ),
       ),
     );
@@ -205,9 +248,9 @@ class _QualityPickerScreenState extends State<QualityPickerScreen> {
         // Title
         Text(
           widget.info.title,
-          style: AppTypography.title3.copyWith(
+          style: AppTypography.title2.copyWith( // Larger
             color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -219,25 +262,26 @@ class _QualityPickerScreenState extends State<QualityPickerScreen> {
         Row(
           children: [
             _PlatformDot(platform: widget.info.platform),
-            const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.sm),
             Flexible(
               child: Text(
                 '@${widget.info.uploader}',
-                style: AppTypography.subheadline.copyWith(
+                style: AppTypography.body.copyWith( // Slightly larger
                   color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.md),
             Text(
               '·',
               style: AppTypography.subheadline.copyWith(
                 color: AppColors.textTertiary,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.md),
             _DurationPill(duration: widget.info.formattedDuration),
           ],
         ),
@@ -266,9 +310,19 @@ class _PlatformDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: _color, shape: BoxShape.circle),
+      width: 10, // slightly larger
+      height: 10,
+      decoration: BoxDecoration(
+        color: _color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: _color.withAlpha(128),
+            blurRadius: 6,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -285,16 +339,20 @@ class _DurationPill extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), // Deeper blur
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.surface3,
+            color: const Color(0x66000000), // Glassier black
             borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: const Color(0x1AFFFFFF), // Subtle white border
+              width: 0.5,
+            ),
           ),
           child: Text(
             duration,
-            style: AppTypography.caption2.copyWith(
+            style: AppTypography.caption1.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
               fontFeatures: const [FontFeature.tabularFigures()],

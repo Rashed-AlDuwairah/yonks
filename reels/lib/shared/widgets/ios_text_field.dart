@@ -9,7 +9,7 @@ import 'package:reels/core/theme/app_theme.dart';
 //  iOS TEXT FIELD — URL Paste Input
 //
 //  iOS search-bar style with:
-//   • Rounded rect, subtle blur background
+//   • Deep frosted glass background
 //   • Smart suffix: Paste button when empty → Clear button when has text
 //   • Leading link icon
 //   • Haptic feedback on paste action
@@ -86,70 +86,84 @@ class _IosTextFieldState extends State<IosTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppRadius.mdAll,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface.withAlpha(204), // 80 % surface
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(
-              color: AppColors.separator,
-              width: 0.5,
-            ),
-          ),
-          child: CupertinoTextField(
-            controller: _controller,
-            placeholder: widget.placeholder,
-            placeholderStyle: AppTypography.body.copyWith(
-              color: AppColors.textTertiary,
-            ),
-            style: AppTypography.body.copyWith(
-              color: AppColors.textPrimary,
-            ),
-            autofocus: widget.autofocus,
-            autocorrect: false,
-            keyboardType: TextInputType.url,
-            textInputAction: TextInputAction.go,
-            onChanged: widget.onChanged,
-            onSubmitted: widget.onSubmitted,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.base,
-              vertical: AppSpacing.md,
-            ),
-            decoration: null, // Remove default decoration — we handle it
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: AppSpacing.md),
-              child: Icon(
-                CupertinoIcons.link,
-                color: AppColors.textTertiary,
-                size: 18,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.mdAll,
+        boxShadow: AppShadows.subtle, // Add subtle drop shadow
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.mdAll,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32), // Aggressive blur
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0x1AFFFFFF), // Deep glass
+              borderRadius: AppRadius.mdAll,
+              border: Border.all(
+                color: AppColors.glassBorder,
+                width: 0.5,
               ),
             ),
-            suffix: Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: AnimatedSwitcher(
-                duration: AppDurations.fast,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: ScaleTransition(scale: animation, child: child),
-                  );
-                },
-                child: _hasText
-                    ? _SuffixButton(
-                        key: const ValueKey('clear'),
-                        icon: CupertinoIcons.xmark_circle_fill,
-                        color: AppColors.textTertiary,
-                        onTap: _clearText,
-                      )
-                    : _SuffixButton(
-                        key: const ValueKey('paste'),
-                        icon: CupertinoIcons.doc_on_clipboard,
-                        color: AppColors.primary,
-                        onTap: _pasteFromClipboard,
+            child: CupertinoTextField(
+              controller: _controller,
+              placeholder: widget.placeholder,
+              placeholderStyle: AppTypography.body.copyWith(
+                color: AppColors.textTertiary,
+              ),
+              style: AppTypography.body.copyWith(
+                color: AppColors.textPrimary,
+              ),
+              autofocus: widget.autofocus,
+              autocorrect: false,
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.go,
+              onChanged: widget.onChanged,
+              onSubmitted: widget.onSubmitted,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.base,
+                vertical: 18, // Taller padding for premium feel
+              ),
+              decoration: null, // Remove default decoration
+              prefix: Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.base), // Match padding
+                child: Icon(
+                  CupertinoIcons.link,
+                  color: AppColors.textTertiary,
+                  size: 20,
+                ),
+              ),
+              suffix: Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
+                child: AnimatedSwitcher(
+                  duration: AppDurations.fast,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.8, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: AppCurves.spring,
+                          ),
+                        ),
+                        child: child,
                       ),
+                    );
+                  },
+                  child: _hasText
+                      ? _SuffixButton(
+                          key: const ValueKey('clear'),
+                          icon: CupertinoIcons.clear_thick_circled, // Bolder icon
+                          color: AppColors.textTertiary,
+                          onTap: _clearText,
+                        )
+                      : _SuffixButton(
+                          key: const ValueKey('paste'),
+                          icon: CupertinoIcons.doc_on_clipboard,
+                          color: AppColors.primary,
+                          onTap: _pasteFromClipboard,
+                        ),
+                ),
               ),
             ),
           ),
@@ -179,8 +193,8 @@ class _SuffixButton extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xs),
-        child: Icon(icon, color: color, size: 20),
+        padding: const EdgeInsets.all(AppSpacing.sm), // Larger tap target
+        child: Icon(icon, color: color, size: 22), // Slightly larger icon
       ),
     );
   }

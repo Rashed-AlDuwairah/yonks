@@ -11,7 +11,7 @@ import 'package:reels/shared/widgets/pressable.dart';
 //   • Format tag (MP4, WebM) — pill badge
 //   • File size — secondary text
 //   • Animated checkmark when selected
-//   • iOS-style selection highlight (primary tint border)
+//   • iOS-style selection highlight (primary tint border + subtle glow)
 //   • Scale-down press animation + haptic
 // ════════════════════════════════════════════════════════════════════════════════
 
@@ -54,13 +54,22 @@ class QualityCard extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withAlpha(18) // ~7 % blue tint
-              : AppColors.surface,
+              ? AppColors.primary.withAlpha(25) // ~10% blue tint
+              : AppColors.surface, // Deep gray
           borderRadius: AppRadius.mdAll,
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.separator,
+            color: isSelected ? AppColors.primary : AppColors.glassBorder,
             width: isSelected ? 1.5 : 0.5,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryGlow,
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
         ),
         child: Row(
           children: [
@@ -70,7 +79,7 @@ class QualityCard extends StatelessWidget {
               isSelected: isSelected,
             ),
 
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.base),
 
             // ── Format tag + file size ──────────────────────────
             Expanded(
@@ -86,6 +95,7 @@ class QualityCard extends StatelessWidget {
                         fileSize,
                         style: AppTypography.subheadline.copyWith(
                           color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -142,7 +152,8 @@ class _ResolutionBadge extends StatelessWidget {
         resolution,
         style: AppTypography.headline.copyWith(
           color: isSelected ? CupertinoColors.white : AppColors.textPrimary,
-          fontSize: 15,
+          fontSize: 16, // Slightly larger
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -171,7 +182,7 @@ class _FormatPill extends StatelessWidget {
         format.toUpperCase(),
         style: AppTypography.caption2.copyWith(
           color: AppColors.textSecondary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -188,8 +199,8 @@ class _AnimatedCheckmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: AppDurations.normal,
-      switchInCurve: AppCurves.spring,
+      duration: AppDurations.fast, // Faster transition
+      switchInCurve: AppCurves.bouncy, // Bouncier checkmark
       switchOutCurve: AppCurves.standard,
       transitionBuilder: (child, animation) {
         return ScaleTransition(
@@ -199,15 +210,15 @@ class _AnimatedCheckmark extends StatelessWidget {
       },
       child: isSelected
           ? Icon(
-              CupertinoIcons.checkmark_circle_fill,
+              CupertinoIcons.checkmark_alt_circle_fill, // More elegant icon
               key: const ValueKey('checked'),
               color: AppColors.primary,
-              size: 24,
+              size: 28, // Slightly larger
             )
           : const SizedBox(
               key: ValueKey('unchecked'),
-              width: 24,
-              height: 24,
+              width: 28,
+              height: 28,
             ),
     );
   }

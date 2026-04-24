@@ -9,7 +9,7 @@ import 'package:reels/core/theme/app_theme.dart';
 //  VIDEO THUMBNAIL CARD — Library Grid Item
 //
 //  ┌──────────────────────┐
-//  │ 🏷 Platform          │  ← top-left platform icon badge
+//  │ 🏷 Platform          │  ← top-left platform icon badge (vibrant blur)
 //  │                      │
 //  │                      │
 //  │                      │
@@ -20,9 +20,9 @@ import 'package:reels/core/theme/app_theme.dart';
 //  Features:
 //   • Auto aspect ratio (9:16 portrait / 16:9 landscape)
 //   • Platform icon badge (X, TikTok, Instagram, YouTube)
-//   • Duration badge with blur background
+//   • Duration badge with deep blur background
 //   • CupertinoContextMenu long-press (Share, Delete, Copy Link)
-//   • Scale-down press animation
+//   • Scale-down press animation (spring-based)
 // ════════════════════════════════════════════════════════════════════════════════
 
 /// Supported video source platforms.
@@ -104,7 +104,7 @@ class _VideoThumbnailCardState extends State<VideoThumbnailCard> {
       aspectRatio: widget.aspectRatio,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface2,
+          color: AppColors.surface, // Darker surface underneath
           borderRadius: AppRadius.mdAll,
           boxShadow: AppShadows.subtle,
         ),
@@ -226,21 +226,21 @@ class _PlatformBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(8),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), // Deeper blur
         child: Container(
-          width: 28,
-          height: 28,
+          width: 32, // Slightly larger
+          height: 32,
           decoration: BoxDecoration(
-            color: platform.color.withAlpha(204), // 80 %
-            borderRadius: BorderRadius.circular(7),
+            color: platform.color.withAlpha(153), // 60% opacity for more vibrancy through blur
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: Text(
               platform.label,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: CupertinoColors.white,
                 height: 1,
@@ -265,15 +265,19 @@ class _DurationBadge extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), // Deeper blur
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: 6,
-            vertical: 3,
+            vertical: 4,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xB3000000), // 70 % black
+            color: const Color(0x66000000), // 40% black for more glass look
             borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: const Color(0x1AFFFFFF), // 10% white subtle border
+              width: 0.5,
+            ),
           ),
           child: Text(
             label,

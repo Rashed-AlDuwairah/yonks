@@ -7,34 +7,38 @@ import 'package:flutter/cupertino.dart';
 // ════════════════════════════════════════════════════════════════════════════════
 
 // ──────────────────────────────────────────────────────────────────────────────
-//  COLORS  — iOS Dark Mode Palette
+//  COLORS  — iOS Dark Mode Palette (AMOLED)
 // ──────────────────────────────────────────────────────────────────────────────
 
 abstract final class AppColors {
-  // Backgrounds
+  // Backgrounds - True Black
   static const background = Color(0xFF000000);
-  static const surface = Color(0xFF1C1C1E);
-  static const surface2 = Color(0xFF2C2C2E);
-  static const surface3 = Color(0xFF3A3A3C);
+  
+  // Surfaces (Slightly elevated from black)
+  static const surface = Color(0xFF141415); // Deepest gray
+  static const surface2 = Color(0xFF1C1C1E);
+  static const surface3 = Color(0xFF2C2C2E);
 
-  // Accent / Semantic
+  // Accent / Semantic - Vibrant iOS Blue
   static const primary = Color(0xFF0A84FF);
+  static const primaryGlow = Color(0x330A84FF); // 20% opacity for glowing
   static const success = Color(0xFF30D158);
   static const warning = Color(0xFFFF9F0A);
   static const error = Color(0xFFFF453A);
 
   // Text hierarchy
   static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0x99FFFFFF); // 60 %
-  static const textTertiary = Color(0x4DFFFFFF); // 30 %
+  static const textSecondary = Color(0x99FFFFFF); // 60%
+  static const textTertiary = Color(0x4DFFFFFF); // 30%
 
   // Chrome
-  static const separator = Color(0x26FFFFFF); // 15 %
+  static const separator = Color(0x26FFFFFF); // 15%
+  static const glassBorder = Color(0x1AFFFFFF); // 10%
 
   // Utility
-  static const shimmerBase = Color(0xFF2C2C2E);
-  static const shimmerHighlight = Color(0xFF3A3A3C);
-  static const shadow = Color(0x26000000); // 15 % black
+  static const shimmerBase = Color(0xFF1C1C1E);
+  static const shimmerHighlight = Color(0xFF2C2C2E);
+  static const shadow = Color(0x80000000); // 50% black for deep shadows
 
   // Platform brand colours (badges / accents)
   static const twitter = Color(0xFF1DA1F2);
@@ -45,12 +49,6 @@ abstract final class AppColors {
 
 // ──────────────────────────────────────────────────────────────────────────────
 //  TYPOGRAPHY  — SF Pro (system font on iOS)
-//
-//  Flutter uses SF Pro automatically on iOS when no fontFamily is specified.
-//  iOS switches between SF Pro Display (≥ 20 pt) and SF Pro Text (< 20 pt)
-//  based on the point size — no manual family switch needed.
-//
-//  Letter-spacing and line-height values match Apple's typographic spec.
 // ──────────────────────────────────────────────────────────────────────────────
 
 abstract final class AppTypography {
@@ -59,7 +57,7 @@ abstract final class AppTypography {
     fontSize: 34,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.37,
-    height: 1.21, // 41 pt leading
+    height: 1.21,
     color: AppColors.textPrimary,
   );
 
@@ -67,7 +65,7 @@ abstract final class AppTypography {
     fontSize: 28,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.36,
-    height: 1.21, // 34 pt
+    height: 1.21,
     color: AppColors.textPrimary,
   );
 
@@ -75,15 +73,15 @@ abstract final class AppTypography {
     fontSize: 22,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.35,
-    height: 1.27, // 28 pt
+    height: 1.27,
     color: AppColors.textPrimary,
   );
 
   static const title3 = TextStyle(
     fontSize: 20,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w600,
     letterSpacing: 0.38,
-    height: 1.25, // 25 pt
+    height: 1.25,
     color: AppColors.textPrimary,
   );
 
@@ -92,7 +90,7 @@ abstract final class AppTypography {
     fontSize: 17,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.41,
-    height: 1.29, // 22 pt
+    height: 1.29,
     color: AppColors.textPrimary,
   );
 
@@ -108,7 +106,7 @@ abstract final class AppTypography {
     fontSize: 16,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.32,
-    height: 1.31, // 21 pt
+    height: 1.31,
     color: AppColors.textPrimary,
   );
 
@@ -116,7 +114,7 @@ abstract final class AppTypography {
     fontSize: 15,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.24,
-    height: 1.33, // 20 pt
+    height: 1.33,
     color: AppColors.textPrimary,
   );
 
@@ -124,7 +122,7 @@ abstract final class AppTypography {
     fontSize: 13,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.08,
-    height: 1.38, // 18 pt
+    height: 1.38,
     color: AppColors.textPrimary,
   );
 
@@ -132,16 +130,16 @@ abstract final class AppTypography {
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
-    height: 1.33, // 16 pt
+    height: 1.33,
     color: AppColors.textPrimary,
   );
 
   static const caption2 = TextStyle(
     fontSize: 11,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     letterSpacing: 0.07,
-    height: 1.18, // 13 pt
-    color: AppColors.textPrimary,
+    height: 1.18,
+    color: AppColors.textSecondary,
   );
 }
 
@@ -167,11 +165,10 @@ abstract final class AppSpacing {
 
 abstract final class AppRadius {
   static const double small = 10;
-  static const double medium = 14;
-  static const double large = 20;
-  static const double extraLarge = 28;
+  static const double medium = 16; // Increased for a softer, premium look
+  static const double large = 24;
+  static const double extraLarge = 32;
 
-  // Pre-built BorderRadius for convenience
   static final smAll = BorderRadius.circular(small);
   static final mdAll = BorderRadius.circular(medium);
   static final lgAll = BorderRadius.circular(large);
@@ -179,22 +176,30 @@ abstract final class AppRadius {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-//  SHADOWS  — Subtle, 15 % opacity
+//  SHADOWS
 // ──────────────────────────────────────────────────────────────────────────────
 
 abstract final class AppShadows {
   static const subtle = [
     BoxShadow(
       color: AppColors.shadow,
-      blurRadius: 20,
+      blurRadius: 16,
       offset: Offset(0, 4),
     ),
   ];
 
   static const elevated = [
     BoxShadow(
-      color: Color(0x33000000), // 20 %
-      blurRadius: 30,
+      color: AppColors.shadow,
+      blurRadius: 32,
+      offset: Offset(0, 12),
+    ),
+  ];
+  
+  static const glowPrimary = [
+    BoxShadow(
+      color: AppColors.primaryGlow,
+      blurRadius: 24,
       offset: Offset(0, 8),
     ),
   ];
@@ -213,6 +218,7 @@ abstract final class AppDurations {
 abstract final class AppCurves {
   static const standard = Curves.easeInOut;
   static const spring = Curves.easeOutCubic;
+  static const bouncy = Curves.elasticOut;
   static const decelerate = Curves.decelerate;
 }
 
@@ -221,7 +227,7 @@ abstract final class AppCurves {
 // ──────────────────────────────────────────────────────────────────────────────
 
 abstract final class AppPressScale {
-  static const double factor = 0.97;
+  static const double factor = 0.96; // Slightly more pronounced scale down
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -233,7 +239,7 @@ abstract final class AppTheme {
         brightness: Brightness.dark,
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.background,
-        barBackgroundColor: Color(0xE6000000), // 90 % black — blurred nav bar
+        barBackgroundColor: Color(0xB3000000), // 70% black — blurred nav bar
         textTheme: CupertinoTextThemeData(
           primaryColor: AppColors.primary,
           textStyle: TextStyle(
@@ -267,3 +273,4 @@ abstract final class AppTheme {
         ),
       );
 }
+
